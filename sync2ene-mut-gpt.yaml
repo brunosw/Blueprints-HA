@@ -1,0 +1,70 @@
+blueprint:
+  name: Sincronizar luzes ou interruptores mutuamente
+  description: Acione uma entidade e a outra seguirá o mesmo estado, e vice-versa.
+  domain: automation
+  input:
+    first_entity:
+      name: Primeira Entidade
+      description: Esta entidade quando acionada irá sincronizar o estado com a segunda entidade.
+      selector:
+        entity:
+          domain:
+            - light
+            - switch
+    second_entity:
+      name: Segunda Entidade
+      description: Esta entidade irá sincronizar o estado com a primeira entidade, e vice-versa.
+      selector:
+        entity:
+          domain:
+            - light
+            - switch
+
+trigger:
+  - platform: state
+    entity_id: !input first_entity
+    to: 'on'
+  - platform: state
+    entity_id: !input first_entity
+    to: 'off'
+  - platform: state
+    entity_id: !input second_entity
+    to: 'on'
+  - platform: state
+    entity_id: !input second_entity
+    to: 'off'
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input first_entity
+            state: 'on'
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input second_entity
+      - conditions:
+          - condition: state
+            entity_id: !input first_entity
+            state: 'off'
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input second_entity
+      - conditions:
+          - condition: state
+            entity_id: !input second_entity
+            state: 'on'
+        sequence:
+          - service: homeassistant.turn_on
+            target:
+              entity_id: !input first_entity
+      - conditions:
+          - condition: state
+            entity_id: !input second_entity
+            state: 'off'
+        sequence:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: !input first_entity
