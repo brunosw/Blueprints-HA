@@ -1,0 +1,37 @@
+# Blueprint para sincronizar duas entidades
+
+blueprint:
+  name: Sincronizar entidades
+  description: Sincroniza o estado de duas entidades.
+  domain: automation
+  input:
+    entidade_1:
+      name: Entidade 1
+      description: A entidade que será sincronizada.
+      selector:
+        entity:
+          domain: <domain>
+          object_id: <object_id>
+    entidade_2:
+      name: Entidade 2
+      description: A entidade que será sincronizada com a entidade 1.
+      selector:
+        entity:
+          domain: <domain>
+          object_id: <object_id>
+
+automation:
+  - alias: Sincronizar entidades
+    trigger:
+      platform: state
+      entity_id: !input entidade_1
+    action:
+      service: homeassistant.update_entity
+      entity_id: !input entidade_2
+      data:
+        state: >
+          {% if trigger.state == 'on' %}on{% else %}off{% endif %}
+        attributes: >
+          {% for key, value in trigger.attributes.items() %}
+            {{ key }}: {{ value }}
+          {% endfor %}
